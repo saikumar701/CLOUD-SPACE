@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
-import GroupChat from "./components/GroupChat";
+import SecureEditorRoom from "./components/SecureEditorRoom";
 
 const App = () => {
   return (
@@ -10,7 +10,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/group/:roomId" element={<GroupChat />} />
+        <Route path="/editor/:roomId" element={<SecureEditorRoom />} />
       </Routes>
     </BrowserRouter>
   );
