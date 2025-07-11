@@ -12,6 +12,7 @@ export default function CollaborativeEditor({ roomId }) {
   const [connectedUsers, setConnectedUsers] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
   const [language, setLanguage] = useState("javascript");
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     // Create Yjs doc & provider only ONCE
@@ -25,25 +26,47 @@ export default function CollaborativeEditor({ roomId }) {
         'wss://y-webrtc-signaling-us.herokuapp.com'
       ],
       password: null,
-      awareness: {
-        name: localStorage.getItem("guestName") || "Anonymous",
-        color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
-        colorLight: `#${Math.floor(Math.random()*16777215).toString(16)}33`
-      },
       maxConns: 20,
       filterBcConns: true,
       peerOpts: {}
     });
 
-    // Track connection status
-    providerRef.current.on('status', (event) => {
-      setIsConnected(event.status === 'connected');
-    });
+    // Wait for provider to be ready before setting up awareness
+    const setupAwareness = () => {
+      if (providerRef.current && providerRef.current.awareness) {
+        // Set user info
+        providerRef.current.awareness.setLocalStateField('user', {
+          name: localStorage.getItem("guestName") || "Anonymous",
+          color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+          colorLight: `#${Math.floor(Math.random()*16777215).toString(16)}33`
+        });
 
-    // Track connected users
-    providerRef.current.awareness.on('change', () => {
-      setConnectedUsers(providerRef.current.awareness.getStates().size);
-    });
+        // Track connected users
+        const updateConnectedUsers = () => {
+          if (providerRef.current && providerRef.current.awareness) {
+            setConnectedUsers(providerRef.current.awareness.getStates().size);
+          }
+        };
+
+        providerRef.current.awareness.on('change', updateConnectedUsers);
+        updateConnectedUsers();
+
+        setIsInitialized(true);
+      }
+    };
+
+    // Track connection status
+    const handleStatusChange = (event) => {
+      setIsConnected(event.status === 'connected');
+      if (event.status === 'connected') {
+        setupAwareness();
+      }
+    };
+
+    providerRef.current.on('status', handleStatusChange);
+
+    // Try to setup awareness immediately if already connected
+    setTimeout(setupAwareness, 100);
 
     return () => {
       if (bindingRef.current) {
@@ -61,59 +84,66 @@ export default function CollaborativeEditor({ roomId }) {
   const handleMount = (editor, monaco) => {
     editorRef.current = editor;
     
-    // Get the shared text type
-    const yText = ydocRef.current.getText("monaco");
-
-    // Create Monaco binding for real-time collaboration
-    bindingRef.current = new MonacoBinding(
-      yText,
-      editor.getModel(),
-      new Set([editor]),
-      providerRef.current.awareness
-    );
-
-    // Set up cursor and selection sharing
-    providerRef.current.awareness.setLocalStateField('user', {
-      name: localStorage.getItem("guestName") || "Anonymous",
-      color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
-      colorLight: `#${Math.floor(Math.random()*16777215).toString(16)}33`
-    });
-
-    // Add custom CSS for collaborative cursors
-    const style = document.createElement('style');
-    style.textContent = `
-      .yRemoteSelection {
-        background-color: rgba(255, 255, 0, 0.3);
+    // Wait for provider to be initialized
+    const initializeBinding = () => {
+      if (!providerRef.current || !ydocRef.current || !isInitialized) {
+        setTimeout(initializeBinding, 100);
+        return;
       }
-      .yRemoteSelectionHead {
-        position: absolute;
-        border-left: 2px solid orange;
-        border-top: 2px solid orange;
-        border-bottom: 2px solid orange;
-        height: 100%;
-        box-sizing: border-box;
-      }
-      .yRemoteSelectionHead::after {
-        position: absolute;
-        content: attr(data-yjs-user);
-        color: white;
-        background-color: orange;
-        font-size: 12px;
-        font-style: normal;
-        font-weight: normal;
-        line-height: normal;
-        user-select: none;
-        white-space: nowrap;
-        padding: 2px 6px;
-        border-radius: 3px;
-        top: -1.5em;
-        left: -2px;
-      }
-    `;
-    document.head.appendChild(style);
 
-    // Focus the editor
-    editor.focus();
+      try {
+        // Get the shared text type
+        const yText = ydocRef.current.getText("monaco");
+
+        // Create Monaco binding for real-time collaboration
+        bindingRef.current = new MonacoBinding(
+          yText,
+          editor.getModel(),
+          new Set([editor]),
+          providerRef.current.awareness
+        );
+
+        // Add custom CSS for collaborative cursors
+        const style = document.createElement('style');
+        style.textContent = `
+          .yRemoteSelection {
+            background-color: rgba(255, 255, 0, 0.3);
+          }
+          .yRemoteSelectionHead {
+            position: absolute;
+            border-left: 2px solid orange;
+            border-top: 2px solid orange;
+            border-bottom: 2px solid orange;
+            height: 100%;
+            box-sizing: border-box;
+          }
+          .yRemoteSelectionHead::after {
+            position: absolute;
+            content: attr(data-yjs-user);
+            color: white;
+            background-color: orange;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: normal;
+            line-height: normal;
+            user-select: none;
+            white-space: nowrap;
+            padding: 2px 6px;
+            border-radius: 3px;
+            top: -1.5em;
+            left: -2px;
+          }
+        `;
+        document.head.appendChild(style);
+
+        // Focus the editor
+        editor.focus();
+      } catch (error) {
+        console.error("Error initializing Monaco binding:", error);
+      }
+    };
+
+    initializeBinding();
   };
 
   const languages = [
@@ -131,7 +161,7 @@ export default function CollaborativeEditor({ roomId }) {
 
   const handleLanguageChange = (newLanguage) => {
     setLanguage(newLanguage);
-    if (editorRef.current) {
+    if (editorRef.current && window.monaco) {
       const model = editorRef.current.getModel();
       if (model) {
         // Change the language of the current model
@@ -261,8 +291,11 @@ export default function CollaborativeEditor({ roomId }) {
         </div>
         <div className="flex items-center space-x-4">
           <span>Collaborative Mode</span>
-          {isConnected && (
+          {isConnected && isInitialized && (
             <span className="text-green-400">● Synced</span>
+          )}
+          {!isInitialized && (
+            <span className="text-yellow-400">● Initializing...</span>
           )}
         </div>
       </div>
