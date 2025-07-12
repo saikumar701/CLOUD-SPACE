@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import IndustryEditor from './IndustryEditor';
+import CollaborativeCodeEditor from './CollaborativeCodeEditor';
+import roomManager from '../utils/roomManager';
 
 const SecureEditorRoom = () => {
   const { roomId } = useParams();
@@ -10,6 +11,10 @@ const SecureEditorRoom = () => {
   const [roomData, setRoomData] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showChat, setShowChat] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  
   const [currentUser] = useState({
     id: Math.random().toString(36).substr(2, 9),
     name: localStorage.getItem('guestName') || `User_${Math.floor(Math.random() * 1000)}`,
@@ -20,8 +25,8 @@ const SecureEditorRoom = () => {
     // Load room data
     const loadRoomData = () => {
       try {
-        const existingRooms = JSON.parse(localStorage.getItem('secureRooms') || '{}');
-        const room = existingRooms[roomId];
+        const rooms = roomManager.loadRooms();
+        const room = rooms[roomId];
         
         if (!room) {
           toast.error('Room not found');
@@ -29,12 +34,12 @@ const SecureEditorRoom = () => {
           return;
         }
 
-        // Add current user to participants if not already present
-        const existingParticipant = room.participants.find(p => p.id === currentUser.id);
-        if (!existingParticipant) {
-          room.participants.push(currentUser);
-          existingRooms[roomId] = room;
-          localStorage.setItem('secureRooms', JSON.stringify(existingRooms));
+        // Check if user is in participants
+        const isParticipant = room.participants.some(p => p.id === currentUser.id);
+        if (!isParticipant) {
+          toast.error('Access denied. Please join the room first.');
+          navigate('/dashboard');
+          return;
         }
 
         setRoomData(room);
@@ -52,25 +57,38 @@ const SecureEditorRoom = () => {
 
   const leaveRoom = () => {
     // Remove user from participants
-    if (roomData) {
-      const existingRooms = JSON.parse(localStorage.getItem('secureRooms') || '{}');
-      const room = existingRooms[roomId];
-      if (room) {
-        room.participants = room.participants.filter(p => p.id !== currentUser.id);
-        existingRooms[roomId] = room;
-        localStorage.setItem('secureRooms', JSON.stringify(existingRooms));
-      }
-    }
-    
+    roomManager.leaveRoom(roomId, currentUser.id);
     toast.success('Left the room');
     navigate('/dashboard');
   };
 
   const copyRoomInfo = () => {
-    const roomInfo = `Room: ${roomData.name}\nKey: ${roomId}\nPassword: [Ask room creator]`;
+    const roomInfo = `🔒 Secure Collaborative Room\n\n📝 Room: ${roomData.name}\n🔑 Key: ${roomId}\n🔐 Password: [Ask room creator]\n\n💻 Join at: ${window.location.origin}`;
     navigator.clipboard.writeText(roomInfo).then(() => {
       toast.success('Room info copied to clipboard');
     });
+  };
+
+  const sendMessage = () => {
+    if (!newMessage.trim()) return;
+    
+    const message = {
+      id: Date.now(),
+      text: newMessage,
+      sender: currentUser.name,
+      timestamp: new Date(),
+      userId: currentUser.id
+    };
+    
+    setMessages(prev => [...prev, message]);
+    setNewMessage('');
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   if (isLoading) {
@@ -116,6 +134,20 @@ const SecureEditorRoom = () => {
             </div>
 
             <div className="flex items-center space-x-3">
+              {/* Chat Toggle */}
+              <button
+                onClick={() => setShowChat(!showChat)}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span>Chat</span>
+                {messages.length > 0 && (
+                  <span className="bg-red-500 text-xs px-2 py-1 rounded-full">{messages.length}</span>
+                )}
+              </button>
+
               <button
                 onClick={copyRoomInfo}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
@@ -197,13 +229,91 @@ const SecureEditorRoom = () => {
           </div>
         </div>
 
-        {/* Editor */}
-        <div className="flex-1">
-          <IndustryEditor 
-            roomId={roomId} 
-            roomData={roomData} 
-            currentUser={currentUser}
-          />
+        {/* Main Content Area */}
+        <div className="flex-1 flex">
+          {/* Editor */}
+          <div className={`${showChat ? 'flex-1' : 'w-full'} transition-all duration-300`}>
+            <CollaborativeCodeEditor 
+              roomId={roomId} 
+              roomData={roomData} 
+              currentUser={currentUser}
+            />
+          </div>
+
+          {/* Chat Panel */}
+          {showChat && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 320, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              className="bg-gray-800 border-l border-gray-700 flex flex-col"
+            >
+              {/* Chat Header */}
+              <div className="p-4 border-b border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-white font-semibold">Team Chat</h3>
+                  <button
+                    onClick={() => setShowChat(false)}
+                    className="text-gray-400 hover:text-white p-1 rounded"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {messages.length === 0 ? (
+                  <div className="text-center text-gray-400 text-sm">
+                    No messages yet. Start the conversation!
+                  </div>
+                ) : (
+                  messages.map((message) => (
+                    <div key={message.id} className={`flex ${message.userId === currentUser.id ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xs px-3 py-2 rounded-lg ${
+                        message.userId === currentUser.id 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-700 text-gray-200'
+                      }`}>
+                        {message.userId !== currentUser.id && (
+                          <p className="text-xs opacity-75 mb-1">{message.sender}</p>
+                        )}
+                        <p className="text-sm">{message.text}</p>
+                        <p className="text-xs opacity-75 mt-1">
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Message Input */}
+              <div className="p-4 border-t border-gray-700">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type a message..."
+                    className="flex-1 bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={!newMessage.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

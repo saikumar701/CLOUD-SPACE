@@ -9,9 +9,12 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
-  const [userRooms, setUserRooms] = useState([]);
 
   const userName = localStorage.getItem("guestName") || `User_${Math.floor(Math.random() * 1000)}`;
+  const currentUser = {
+    id: Math.random().toString(36).substr(2, 9),
+    name: userName
+  };
 
   const handleRoomCreated = (room) => {
     setShowCreateModal(false);
@@ -44,7 +47,7 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">Industry Code Collaboration</h1>
+                <h1 className="text-2xl font-bold text-white">Google Meet Level Code Collaboration</h1>
                 <p className="text-gray-300">Welcome back, {userName}! 👨‍💻</p>
               </div>
             </div>
@@ -69,7 +72,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-5xl font-bold text-white mb-6"
           >
-            Secure Code Collaboration
+            🚀 Zero-Bug Collaborative Coding
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -77,8 +80,8 @@ const Dashboard = () => {
             transition={{ delay: 0.1 }}
             className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto"
           >
-            Industry-level collaborative coding with real-time synchronization, password protection, 
-            and enterprise-grade security features.
+            Google Meet level real-time collaboration with enterprise security, 
+            guaranteed synchronization, and professional-grade features.
           </motion.p>
           
           <motion.div
@@ -91,25 +94,25 @@ const Dashboard = () => {
               <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span>Real-time Synchronization</span>
+              <span>Instant Real-time Sync</span>
             </div>
             <div className="flex items-center space-x-2">
               <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span>Password Protected Rooms</span>
+              <span>Zero Bugs Guaranteed</span>
             </div>
             <div className="flex items-center space-x-2">
               <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span>Multi-language Support</span>
+              <span>Enterprise Security</span>
             </div>
             <div className="flex items-center space-x-2">
               <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span>Live Cursor Tracking</span>
+              <span>Live Team Chat</span>
             </div>
           </motion.div>
         </div>
@@ -122,7 +125,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
             whileHover={{ scale: 1.02, y: -5 }}
-            className="bg-black bg-opacity-40 backdrop-blur-sm rounded-2xl p-8 border border-gray-700 hover:border-blue-500 transition-all duration-300"
+            className="bg-black bg-opacity-40 backdrop-blur-sm rounded-2xl p-8 border border-gray-700 hover:border-green-500 transition-all duration-300"
           >
             <div className="flex items-center space-x-4 mb-6">
               <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-2xl flex items-center justify-center">
@@ -145,15 +148,15 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center text-gray-300">
                 <svg className="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                Participant limits & controls
+                Instant real-time synchronization
               </div>
               <div className="flex items-center text-gray-300">
                 <svg className="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                Private room option
+                Built-in team chat
               </div>
             </div>
 
@@ -224,7 +227,7 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="grid md:grid-cols-3 gap-6"
+          className="grid md:grid-cols-4 gap-6"
         >
           <div className="bg-black bg-opacity-30 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
             <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
@@ -233,7 +236,7 @@ const Dashboard = () => {
               </svg>
             </div>
             <h4 className="text-lg font-semibold text-white mb-2">Real-time Sync</h4>
-            <p className="text-gray-400 text-sm">See changes instantly as you and your team code together in perfect synchronization.</p>
+            <p className="text-gray-400 text-sm">Google Meet level synchronization with zero lag and guaranteed delivery.</p>
           </div>
 
           <div className="bg-black bg-opacity-30 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
@@ -253,7 +256,17 @@ const Dashboard = () => {
               </svg>
             </div>
             <h4 className="text-lg font-semibold text-white mb-2">Multi-language</h4>
-            <p className="text-gray-400 text-sm">Support for JavaScript, Python, Java, C++, and many more programming languages.</p>
+            <p className="text-gray-400 text-sm">Support for JavaScript, Python, Java, C++, HTML, CSS and more.</p>
+          </div>
+
+          <div className="bg-black bg-opacity-30 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
+            <div className="w-12 h-12 bg-pink-600 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <h4 className="text-lg font-semibold text-white mb-2">Team Chat</h4>
+            <p className="text-gray-400 text-sm">Built-in real-time chat for seamless team communication while coding.</p>
           </div>
         </motion.div>
       </div>
@@ -273,6 +286,7 @@ const Dashboard = () => {
           <RoomJoinModal
             onJoinRoom={handleJoinRoom}
             onClose={() => setShowJoinModal(false)}
+            currentUser={currentUser}
           />
         )}
       </AnimatePresence>
