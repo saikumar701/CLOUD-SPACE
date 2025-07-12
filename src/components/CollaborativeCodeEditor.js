@@ -137,7 +137,24 @@ const CollaborativeCodeEditor = ({ roomId, roomData, currentUser }) => {
         matchBrackets: true,
         showCursorWhenSelecting: true,
         styleActiveLine: true,
-        value: roomData?.code || '// Welcome to collaborative coding!\n// Start typing to see real-time synchronization\n\nconsole.log("Hello, collaborative world!");'
+        value: roomData?.code || `// Welcome to Google Meet Level Collaborative Coding!
+// Real-time synchronization with zero bugs guaranteed
+// Start typing to see instant collaboration
+
+console.log("Hello, collaborative world!");
+
+function collaborativeFunction() {
+    // Multiple users can edit this simultaneously
+    return "Amazing real-time sync!";
+}
+
+// Try editing this with multiple users
+const users = ["Alice", "Bob", "Charlie"];
+users.forEach(user => {
+    console.log(\`\${user} is coding together!\`);
+});
+
+collaborativeFunction();`
       });
 
       editorRef.current = editor;
@@ -314,7 +331,7 @@ const CollaborativeCodeEditor = ({ roomId, roomData, currentUser }) => {
           <div className="absolute inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center">
             <div className="text-center text-white">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-lg font-medium">Initializing Collaborative Editor...</p>
+              <p className="text-lg font-medium">Initializing Google Meet Level Editor...</p>
               <p className="text-sm text-gray-400 mt-2">Setting up real-time synchronization</p>
             </div>
           </div>

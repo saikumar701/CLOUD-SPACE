@@ -63,7 +63,13 @@ const SecureEditorRoom = () => {
   };
 
   const copyRoomInfo = () => {
-    const roomInfo = `🔒 Secure Collaborative Room\n\n📝 Room: ${roomData.name}\n🔑 Key: ${roomId}\n🔐 Password: [Ask room creator]\n\n💻 Join at: ${window.location.origin}`;
+    const roomInfo = `🔒 Secure Collaborative Room
+
+📝 Room: ${roomData.name}
+🔑 Key: ${roomId}
+🔐 Password: [Ask room creator]
+
+💻 Join at: ${window.location.origin}`;
     navigator.clipboard.writeText(roomInfo).then(() => {
       toast.success('Room info copied to clipboard');
     });
